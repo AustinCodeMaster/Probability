@@ -6,7 +6,9 @@ from scipy.stats import pearsonr, norm
 from sklearn.linear_model import LinearRegression
 import io
 
-# Data
+# --- Data Preparation ---
+# The data below contains the number of hours spent coding and the number of coding bugs for 50 students.
+# I am using a multi-line string to store the data, which will be loaded into a pandas DataFrame.
 raw_data = '''
 Student\tHours_Coding\tNum_Bugs
 1\t10.7\t25
@@ -61,53 +63,67 @@ Student\tHours_Coding\tNum_Bugs
 50\t6\t15
 '''
 
-# Load data into DataFrame
+# Load the data into a pandas DataFrame using StringIO
+# This allows us to treat the string as if it were a file
+# The separator '\t' means the data is tab-separated
+# This step is important for all further analysis
+# ---
 data = pd.read_csv(io.StringIO(raw_data), sep='\t')
 
-# i. Scatter plot
+# --- Scatter Plot (Question i) ---
+# Plotting Hours Coding (x-axis) vs Num Bugs (y-axis)
+# This helps visualize the relationship between the two variables
 plt.figure(figsize=(8,6))
 sns.scatterplot(x='Hours_Coding', y='Num_Bugs', data=data)
 plt.title('Hours Coding vs Num Bugs')
 plt.xlabel('Hours Coding')
 plt.ylabel('Num Bugs')
-plt.savefig('scatter_hours_vs_bugs.png')
+plt.savefig('scatter_hours_vs_bugs.png')  # Save the plot as a PNG file
 plt.close()
 
-# ii. Pearson correlation
+# --- Pearson Correlation (Question ii) ---
+# Calculate Pearson's correlation coefficient to measure linear relationship
 r, p_value = pearsonr(data['Hours_Coding'], data['Num_Bugs'])
 print(f"Pearson correlation coefficient (r): {r:.3f}")
 
-# iii. Regression equation
+# --- Linear Regression (Question iii) ---
+# Fit a linear regression model: Num_Bugs = a + b * Hours_Coding
+# This will help us predict the number of bugs based on hours spent coding
 X = data[['Hours_Coding']]
 y = data['Num_Bugs']
 reg = LinearRegression().fit(X, y)
-a = reg.intercept_
-b = reg.coef_[0]
+a = reg.intercept_  # Intercept of the regression line
+b = reg.coef_[0]    # Slope of the regression line
 print(f"Regression equation: Num_Bugs = {a:.2f} + {b:.2f} * Hours_Coding")
 
-# Predict for 20 hours
+# Predict the number of bugs for 20 hours of coding
 pred_20 = reg.predict([[20]])[0]
 print(f"Predicted Num_Bugs for 20 hours: {pred_20:.2f}")
 
-# iv. Frequency distribution table
+# --- Frequency Distribution Table (Question iv) ---
+# Count how many times each number of bugs appears in the data
 freq_table = data['Num_Bugs'].value_counts().sort_index()
 print("\nFrequency distribution table for Num_Bugs:")
 print(freq_table)
 
-# v. Histogram
+# --- Histogram (Question v) ---
+# Plot a histogram to show the distribution of the number of bugs
 plt.figure(figsize=(8,6))
 sns.histplot(data['Num_Bugs'], bins=10, kde=False, stat='density', color='skyblue', edgecolor='black')
 
-# vi. Overlay normal curve
+# --- Overlay Normal Curve (Question vi) ---
+# Calculate the mean and standard deviation of the number of bugs
 mean = data['Num_Bugs'].mean()
 std = data['Num_Bugs'].std()
+# Generate x values for the normal curve
 x = np.linspace(data['Num_Bugs'].min(), data['Num_Bugs'].max(), 100)
+# Plot the normal distribution curve using the sample mean and std
 plt.plot(x, norm.pdf(x, mean, std), 'r-', lw=2, label='Normal Curve')
 plt.title('Histogram of Num Bugs with Normal Curve')
 plt.xlabel('Num Bugs')
 plt.ylabel('Density')
 plt.legend()
-plt.savefig('histogram_num_bugs.png')
+plt.savefig('histogram_num_bugs.png')  # Save the histogram with normal curve
 plt.close()
 
 print("\nPlots saved as 'scatter_hours_vs_bugs.png' and 'histogram_num_bugs.png'.")
